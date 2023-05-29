@@ -1,0 +1,66 @@
+{% extends 'base.html' %}
+
+{% load django_bootstrap5 %}
+
+{% block title %}Отчёт по количеству и статусам резюме{% endblock %}
+
+{% block main %}
+    <div class="form mb-5">
+        {% csrf_token %}
+        {% for fm in form %}
+            {% if "choicefield" in fm.field|slugify %}
+                <div class="mb-3">
+                    {% bootstrap_label fm.label %}
+                    {{ fm }}
+                </div>
+            {% else %}
+                {% bootstrap_field fm %}
+            {% endif %}
+        {% endfor %}
+        <a class="btn btn-primary" onclick="get_resume_data()">Добавить данные</a>
+    </div>
+
+    <div id="chart" class="mb-5"></div>
+
+{% endblock %}
+
+{% block scripts %}
+    <script>
+        let series = []
+
+        function render() {
+            document.querySelector("#chart").innerHTML = ""
+
+            let options = {
+                series: series,
+                chart: {width: 700, type: 'pie'},
+                labels: [{% for resume_status in resume_statuses %}'{{ resume_status.label }}',{% endfor %}],
+            };
+
+            let chart = new ApexCharts(document.querySelector("#chart"), options);
+            chart.render();
+        }
+
+        function get_resume_data() {
+            $.ajax({
+                type: "POST",
+                url: "{% url "report:resume_status_pie-ajax" %}",
+                data: {
+                    "csrfmiddlewaretoken": "{{ csrf_token }}",
+                    "position": document.getElementById("id_position").value,
+                    "full_name": document.getElementById("id_full_name").value,
+                    "created__gte": document.getElementById("id_created__gte").value,
+                    "created__lte": document.getElementById("id_created__lte").value,
+                },
+                success: function (data) {
+                    series = data;
+                    render();
+                },
+                error: function (errMsg) {
+                    alert(errMsg);
+                }
+            });
+        }
+    </script>
+
+{% endblock %}

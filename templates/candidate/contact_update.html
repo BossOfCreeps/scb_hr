@@ -1,0 +1,23 @@
+{% extends 'base.html' %}
+
+{% load django_bootstrap5 %}
+
+{% block title %}Изменение контакта{% endblock %}
+
+{% block main %}
+    <h1>Изменение образования</h1>
+    <form action="{% url "candidate:contact-update" form.instance.id %}" method="post" class="form">
+        {% csrf_token %}
+        {% for fm in form %}
+            {% if "choicefield" in fm.field|slugify %}
+                <div class="mb-3">
+                    {% bootstrap_label fm.label %}
+                    {{ fm }}
+                </div>
+            {% else %}
+                {% bootstrap_field fm %}
+            {% endif %}
+        {% endfor %}
+        <button type="submit" class="btn btn-primary">Обновить</button>
+    </form>
+{% endblock %}

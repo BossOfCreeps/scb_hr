@@ -1,0 +1,144 @@
+{% load django_bootstrap5 %}
+{% load static %}
+{% load inspector_tags %}
+
+<!DOCTYPE html>
+<html lang="{{ LANGUAGE_CODE|default:'en_us' }}">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <title>{% block title %}ЗАГОЛОВОК{% endblock %}</title>
+    <link href="{% static "bootstrap.min.css" %}" rel="stylesheet">
+    <link rel="stylesheet" href="{% static "bootstrap-select/bootstrap-select.min.css" %}">
+    <link rel="stylesheet" href="{% static "apexcharts/apexcharts.css" %}">
+    <link href="{% static "styles.css" %}" rel="stylesheet">
+    {% block head %}{% endblock %}
+</head>
+<body class="container">
+<header>
+    <nav class="navbar navbar-expand-xxl">
+        <div class="container-fluid">
+            <a class="navbar-brand nb_logo" href="{% url "candidate:candidate-index" %}">
+                <img src="{% static "navbar/logo.svg" %}" alt="Совкомбанк">
+            </a>
+
+            <button class="navbar-toggler nb_toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar">
+                <img src="{% static "navbar/toggler.svg" %}" alt="Меню">
+            </button>
+
+            <div class="navbar-collapse collapse" id="navbar">
+
+                {% with request.resolver_match.app_name as app_name %}
+                    <ul class="navbar-nav me-auto mb-2 mb-xl-0">
+                        <li class="nav-item">
+                            <a class="nav-link {% if app_name == 'candidate' %}active{% endif %}"
+                               href="{% url "candidate:candidate-index" %}">
+                                Открытые вакансии
+                            </a>
+                        </li>
+
+                        {% if perms.inspector.change_resume %}
+                            <li class="nav-item">
+                                <a class="nav-link {% if app_name == 'inspector' %}active{% endif %} position-relative"
+                                   href="{% url "inspector:resume-list" %}">
+                                    Согласование
+                                    <span class="badge text-bg-secondary">{% resumes_to_inspector %}</span>
+                                </a>
+                            </li>
+                        {% endif %}
+
+                        {% if perms.inspector.view_resume %}
+                            <li class="nav-item">
+                                <a class="nav-link {% if app_name == 'archive' %}active{% endif %}"
+                                   href="{% url "archive:archive-list" %}">Архив резюме</a>
+                            </li>
+                        {% endif %}
+
+                        {% if perms.vacancy.change_vacancy %}
+                            <li class="nav-item">
+                                <a class="nav-link {% if app_name == 'vacancy' %}active{% endif %}"
+                                   href="{% url "vacancy:vacancy-list" %}">Вакансии</a>
+                            </li>
+                        {% endif %}
+
+                        {% if perms.position.full %}
+                            <li class="nav-item">
+                                <a class="nav-link {% if app_name == 'position' %}active{% endif %}"
+                                   href="{% url "position:position-list" %}">Должности</a>
+                            </li>
+                        {% endif %}
+
+                        {% if perms.vacancy.add_vacancy %}
+                            <li class="nav-item dropdown">
+                                <a class="nav-link dropdown-toggle {% if request.resolver_match.app_name == 'parsing' %}active{% endif %}"
+                                   data-bs-toggle="dropdown" aria-expanded="false">
+                                    Парсинг
+                                </a>
+                                <ul class="dropdown-menu">
+                                    <li><a class="dropdown-item" href="{% url "parsing:superjob-form" %}">Superjob</a>
+                                    </li>
+                                </ul>
+                            </li>
+                        {% endif %}
+
+                        {% if perms.inspector.add_resume %}
+                            <li class="nav-item dropdown">
+                                <a class="nav-link dropdown-toggle {% if request.resolver_match.app_name == 'report' %}active{% endif %}"
+                                   data-bs-toggle="dropdown" aria-expanded="false">
+                                    Отчёты
+                                </a>
+                                <ul class="dropdown-menu">
+                                    <li><a class="dropdown-item" href="{% url "report:resume_per_vacancy" %}">
+                                        Кол-во резюме на вакансию
+                                    </a></li>
+                                    <li><a class="dropdown-item" href="{% url "report:resume_per_datetime" %}">
+                                        Кол-во резюме по времени
+                                    </a></li>
+                                    <li><a class="dropdown-item" href="{% url "report:resume_status_pie" %}">
+                                        Статусы резюме
+                                    </a></li>
+                                </ul>
+                            </li>
+                        {% endif %}
+
+                    </ul>
+                {% endwith %}
+                <div class="d-lg-flex col-lg-3 justify-content-lg-end">
+                    {% if request.user.is_authenticated %}
+                        <a href="{% url "candidate:candidate-profile" %}" class="btn btn-primary">Профиль</a>
+                    {% else %}
+                        <a href="{% url "account:login" %}" class="btn btn-primary">Войти</a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </nav>
+</header>
+
+<main>
+    {% block main %}{% endblock %}
+</main>
+
+<footer>
+    {% block footer %}{% endblock %}
+</footer>
+
+<script src="{% static "bootstrap.bundle.min.js" %}"></script>
+<script src={% static "jquery.min.js" %}></script>
+<script src={% static "bootstrap-select/bootstrap-select.min.js" %}></script>
+<script src={% static "bootstrap-select/bootstrap.bundle.min.js" %}></script>
+<script src={% static "bootstrap-select/highlight.pack.js.pagespeed.jm.dO4qkBpHzz.js" %}></script>
+<script src={% static "bootstrap-select/TbEa0Z3RJi.js" %}></script>
+<script src="{% static "ckeditor/ckeditor.js" %}"></script>
+<script src="{% static "apexcharts/apexcharts.js" %}"></script>
+<script src="{% static "scripts.js" %}"></script>
+<script>
+    table_sort()
+    eval(mod_pagespeed_2HaUiZdTC$);
+    $('select').selectpicker();
+</script>
+
+{% block scripts %}{% endblock %}
+
+</body>
+</html>

@@ -1,0 +1,88 @@
+{% extends 'base.html' %}
+
+{% load django_bootstrap5 %}
+{% load static %}
+
+{% block title %}Главная страница{% endblock %}
+
+
+{% block main %}
+    <button class="btn btn-primary mb-1" onmousedown="view_filter_form()">
+        <img src="{% static 'icons/filter.svg' %}" alt="Фильтрация"> Фильтрация
+    </button>
+
+    <form action="{% url 'candidate:candidate-index' %}" {% if not show_filter %}style="display: none"{% endif %}
+          class="row gx-3 gy-2" id="filter_form">
+
+        {% for fm in filter.form %}
+            <div class="col-sm-2">
+                {% if "choicefield" in fm.field|slugify %}
+                    <div class="mb-3">
+                        {% bootstrap_label fm.label %}
+                        {{ fm }}
+                    </div>
+                {% else %}
+                    {% bootstrap_field fm %}
+                {% endif %}
+            </div>
+        {% endfor %}
+        <div class="col-sm-1">
+            <button type="submit" class="btn btn-primary">Отфильтровать</button>
+        </div>
+    </form>
+
+    {% if vacancies|length > 0 %}
+        <table class="table clickable_table">
+            <thead>
+            <tr>
+                <th scope="col" class="order">
+                    Должность
+                </th>
+                <th scope="col" class="order">
+                    Организация
+                </th>
+                <th scope="col" class="d-none d-lg-table-cell">
+                    Специализация
+                </th>
+                <th scope="col" class="d-none d-lg-table-cell">
+                    Опыт
+                </th>
+                <th scope="col" class="d-none d-lg-table-cell">
+                    Тип работы
+                </th>
+            </tr>
+            </thead>
+            <tbody>
+            {% for vacancy in vacancies %}
+                <tr onclick="open_vacancy({{ vacancy.id }})">
+                    <td>
+                        {{ vacancy.position.name }}
+                    </td>
+                    <td>
+                        {{ vacancy.position.organisation.name }}
+                    </td>
+                    <td class="d-none d-lg-table-cell">
+                        {{ vacancy.specialisations.all|join:"<br>" }}
+                    </td>
+                    <td class="d-none d-lg-table-cell">
+                        {{ vacancy.work_years.all|join:"<br>" }}
+                    </td>
+                    <td class="d-none d-lg-table-cell">
+                        {{ vacancy.employment_types.all|join:"<br>" }}
+                    </td>
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    {% else %}
+        <h1>Вакансий нет</h1>
+    {% endif %}
+{% endblock %}
+
+{% block scripts %}
+    <script>
+        function open_vacancy(vacancy_id) {
+            window.open(vacancy_id, "_self");
+        }
+    </script>
+{% endblock %}

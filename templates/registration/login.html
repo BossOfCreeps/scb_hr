@@ -1,0 +1,18 @@
+{% extends 'base.html' %}
+
+{% load django_bootstrap5 %}
+{% load static %}
+
+{% block title %}Авторизация{% endblock %}
+
+{% block main %}
+    <a href="{% url "account:registration" %}" class="btn btn-success mb-3">Зарегистрироваться</a>
+    <form action="" method="post" class="form">
+        {% csrf_token %}
+
+        {% bootstrap_form form %}
+
+        {% bootstrap_button button_type="submit" content="Войти" %}
+    </form>
+
+{% endblock %}

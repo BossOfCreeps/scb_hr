@@ -1,0 +1,122 @@
+{% extends 'base.html' %}
+
+{% load django_bootstrap5 %}
+{% load static %}
+
+{% block title %}Профиль пользователя{% endblock %}
+
+{% block main %}
+    <h1>{{ request.user.full_name }}</h1>
+    <p>{{ request.user.email }}</p>
+
+    {% if request.user.image %}
+        <div><img src="{{ request.user.image.url }}" height="200px" alt="Фотография"></div>
+    {% endif %}
+
+    {% for position in request.user.positions.all %}
+        <span class="badge bg-dark">{{ position.name }} ("{{ position.organisation.name }}")</span>
+    {% endfor %}
+    <br>
+    <a class="btn btn-primary mt-4" href="{% url "account:update" %}">Изменить</a>
+    <hr>
+
+    <h2>Интервью</h2>
+    {% for interview in request.user.interviews.all %}
+        <div>
+            <p>
+                <a href="{% url "candidate:candidate-resume" interview.resume.id %}">
+                    Должность: {{ interview.resume.vacancy.position.name }}
+                    ({{ interview.resume.vacancy.position.organisation }})
+                </a>
+            </p>
+            <p>c {{ interview.start_date|date:"H:i d/m/Y" }} по {{ interview.finish_date|date:"H:i d/m/Y" }}</p>
+            {% if interview.url %}
+                <p>
+                    Ссылка: <a href="{{ interview.url }}">{{ interview.url }}</a>
+                </p>
+            {% endif %}
+            <p>{{ interview.description|safe }}</p>
+        </div>
+    {% endfor %}
+    <hr>
+
+    <h2>Отправленные резюме</h2>
+    {% for resume in request.user.resumes.all %}
+        <div>
+            <p>
+                <a href="{% url "candidate:candidate-resume" resume.id %}">
+                    {{ resume.vacancy.position.name }} ({{ resume.vacancy.position.organisation }})
+                </a>
+            </p>
+            <p>Дата отправки: {{ resume.created|date:"H:i d/m/Y" }}</p>
+            <p>Статус: {{ resume.get_status_display }}</p>
+        </div>
+    {% endfor %}
+    <hr>
+
+    <h2>Контакты</h2>
+    {% for contact in request.user.contacts.all %}
+        <div>
+            <div>
+                <p><span class="badge bg-dark">
+                    <img src="/static/icons/contact/{{ contact.type|lower }}.svg" width="20" height="20">
+                </span> {{ contact.value }}</p>
+            </div>
+
+            <div class="btn-group mb-3" role="group">
+                <a href="{% url 'candidate:contact-update' contact.id %}" class="btn btn-primary">Изменить</a>
+                <a href="{% url 'candidate:contact-delete' contact.id %}" class="btn btn-danger">Удалить</a>
+            </div>
+        </div>
+    {% endfor %}
+    <a href="{% url 'candidate:contact-create' %}" class="btn btn-success">Добавить</a>
+    <hr>
+
+    <h2>Опыт работы</h2>
+    {% for work_exp in request.user.work_experiences.all %}
+        <div>
+            <div>
+                <b>{{ work_exp.company }}</b><br>
+                <span>{{ work_exp.position }}</span><br>
+                <i>
+                    c {{ work_exp.start_date|date:"d-m-Y" }}
+                    по {% if work_exp.finish_date %}{{ work_exp.finish_date|date:"d-m-Y" }}{% else %}н.в.{% endif %}
+                </i>
+                <p>{{ work_exp.description }}</p>
+            </div>
+
+            <div class="btn-group mb-3" role="group" aria-label="Basic example">
+                <a href="{% url 'candidate:work_experience-update' work_exp.id %}" class="btn btn-primary">Изменить</a>
+                <a href="{% url 'candidate:work_experience-delete' work_exp.id %}" class="btn btn-danger">Удалить</a>
+            </div>
+        </div>
+    {% endfor %}
+    <a href="{% url 'candidate:work_experience-create' %}" class="btn btn-success">Добавить</a>
+    <hr>
+
+    <h2>Образование</h2>
+    {% for education in request.user.educations.all %}
+        <div>
+            <div>
+                <b>{{ education.place }}</b><br>
+                <span>{{ education.direction }}</span><br>
+                <i>
+                    c {{ education.start_date|date:"d-m-Y" }}
+                    по {% if education.finish_date %}{{ education.finish_date|date:"d-m-Y" }}{% else %}н.в.{% endif %}
+                </i>
+            </div>
+
+            <div class="btn-group mb-3" role="group" aria-label="Basic example">
+                <a href="{% url 'candidate:education-update' education.id %}" class="btn btn-primary">Изменить</a>
+                <a href="{% url 'candidate:education-delete' education.id %}" class="btn btn-danger">Удалить</a>
+            </div>
+        </div>
+    {% endfor %}
+    <a href="{% url 'candidate:education-create' %}" class="btn btn-success">Добавить</a>
+    <hr>
+
+    <a href="{% url "account:logout" %}" class="btn btn-danger mb-4">Выйти из
+        аккаунта</a>
+
+{% endblock %}
+

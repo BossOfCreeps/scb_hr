@@ -1,0 +1,165 @@
+{% extends 'base.html' %}
+
+{% load django_bootstrap5 %}
+{% load static %}
+
+{% block title %}
+    Согласование резюме "{{ resume.candidate.full_name }}" на должность "{{ resume.vacancy.position }}"
+{% endblock %}
+
+{% block main %}
+    <h1>{{ resume.vacancy }}</h1>
+
+    {% if resume.candidate.image %}
+        <div><img src="{{ resume.candidate.image.url }}" height="200px" alt="Фотография"></div>
+    {% endif %}
+
+    <div class="mt-3">
+        <h2>{{ resume.candidate.full_name }}</h2>
+        <p>{{ resume.created|date:"H:i d/m/Y" }}</p>
+        <p>Cтатус: {{ resume.get_status_display }}</p>
+    </div>
+
+    <div>
+        <h3>Контакты</h3>
+        {% for contact in request.user.contacts.all %}
+            <div>
+                <p><span class="badge bg-dark">{{ contact.type }}</span> {{ contact.value }}</p>
+            </div>
+        {% endfor %}
+        <hr>
+
+        <h3>Опыт работы</h3>
+        {% for work_exp in request.user.work_experiences.all %}
+            <div>
+                <b>{{ work_exp.company }}</b><br>
+                <span>{{ work_exp.position }}</span><br>
+                <i>
+                    c {{ work_exp.start_date|date:"d-m-Y" }}
+                    по {% if work_exp.finish_date %}{{ work_exp.finish_date|date:"d-m-Y" }}{% else %}н.в.{% endif %}
+                </i>
+                <p>{{ work_exp.description }}</p>
+            </div>
+        {% endfor %}
+        <hr>
+
+        <h3>Образование</h3>
+        {% for education in request.user.educations.all %}
+            <div>
+                <b>{{ education.place }}</b><br>
+                <span>{{ education.direction }}</span><br>
+                <i>
+                    c {{ education.start_date|date:"d-m-Y" }}
+                    по
+                    {% if education.finish_date %}{{ education.finish_date|date:"d-m-Y" }}{% else %}н.в.{% endif %}
+                </i>
+            </div>
+        {% endfor %}
+        <hr>
+    </div>
+
+    <p>{{ resume.cv|safe }}</p>
+
+    <div>
+        {% for file in resume.files.all %}
+            <a href="{{ file.file.url }}" target="_blank">{{ file.file.name }}</a>
+        {% endfor %}
+    </div>
+
+    <div class="btn-group mb-3" role="group">
+        <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#InterviewModal"
+                onclick="set_resume_id({{ resume.id }})">
+            Назначить интервью
+        </button>
+        <button type="button" class="btn btn-success" data-bs-toggle="modal" data-bs-target="#ApproveModal"
+                onclick="set_resume_id({{ resume.id }})">
+            Согласовать
+        </button>
+        <button type="button" class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#DenyModal"
+                onclick="set_resume_id({{ resume.id }})">
+            Отклонить
+        </button>
+    </div>
+
+    <!-- Interview modal -->
+    <div class="modal fade" id="InterviewModal" tabindex="-1" aria-labelledby="InterviewModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <form action="{% url "inspector:interview-create" %}" method="post" class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="InterviewModalLabel">Назначить интервью</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    {% csrf_token %}
+                    <input type="hidden" name="resume" value="{{ resume.id }}">
+                    {% for fm in interview_form %}
+                        {% if "choicefield" in fm.field|slugify %}
+                            <div class="mb-3">
+                                {% bootstrap_label fm.label %}
+                                {{ fm }}
+                            </div>
+                        {% else %}
+                            {% bootstrap_field fm %}
+                        {% endif %}
+                    {% endfor %}
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Отменить</button>
+                    <button type="submit" class="btn btn-success">Создать</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Approve modal -->
+    <div class="modal fade" id="ApproveModal" tabindex="-1" aria-labelledby="ApproveModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <form action="{% url "inspector:resume-approve" %}" method="post" class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="ApproveModalLabel">Согласовать резюме</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    {% csrf_token %}
+                    <input type="hidden" name="resume" value="{{ resume.id }}">
+                    <textarea class="form-control" rows="6" name="approve_text" id='htmldata'></textarea>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Отменить</button>
+                    <button type="submit" class="btn btn-success">Согласовать</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Deny modal -->
+    <div class="modal fade" id="DenyModal" tabindex="-1" aria-labelledby="DenyModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <form action="{% url "inspector:resume-deny" %}" method="post" class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="DenyModalLabel">Отказать кандидату</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    {% csrf_token %}
+                    <input type="hidden" name="resume" value="{{ resume.id }}">
+                    <textarea class="form-control" rows="6" name="deny_text" id='htmldata'></textarea>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Отменить</button>
+                    <button type="submit" class="btn btn-danger">Отказать</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+{% endblock %}
+
+
+{% block scripts %}
+    <script>
+        CKEDITOR.replace('description');
+        CKEDITOR.replace('approve_text');
+        CKEDITOR.replace('deny_text');
+    </script>
+{% endblock %}

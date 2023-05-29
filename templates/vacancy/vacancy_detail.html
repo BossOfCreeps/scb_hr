@@ -1,0 +1,76 @@
+{% extends 'base.html' %}
+
+{% load django_bootstrap5 %}
+
+{% block title %}Вакансия {{ vacancy_form.instance }}{% endblock %}
+
+{% block main %}
+    <h1>{{ vacancy_form.instance.position }}</h1>
+
+    <a href="{% url 'vacancy:vacancy-delete' vacancy_form.instance.id %}" class="btn btn-danger mt-4 mb-1">
+        Удалить вакансию
+    </a>
+
+    <form action="{% url "vacancy:vacancy-update" vacancy_form.instance.id %}" method="post" class="form">
+        {% csrf_token %}
+        {% for fm in vacancy_form %}
+            {% if "choicefield" in fm.field|slugify %}
+                <div class="mb-3">
+                    {% bootstrap_label fm.label %}
+                    {{ fm }}
+                </div>
+            {% else %}
+                {% bootstrap_field fm %}
+            {% endif %}
+        {% endfor %}
+        <button type="submit" class="btn btn-primary">Обновить вакансию</button>
+    </form>
+
+    <hr>
+
+    <h2>Шаги согласования</h2>
+    {% for check_form in check_forms %}
+        <a href="{% url 'vacancy:check-delete' check_form.instance.id %}" class="btn btn-danger mt-4 mb-1">
+            Удалить шаг согласования
+        </a>
+        <form action="{% url "vacancy:check-update" check_form.instance.id %}" method="post" class="form">
+            {% csrf_token %}
+            {% for fm in check_form %}
+                {% if "choicefield" in fm.field|slugify %}
+                    <div class="mb-3">
+                        {% bootstrap_label fm.label %}
+                        {{ fm }}
+                    </div>
+                {% else %}
+                    {% bootstrap_field fm %}
+                {% endif %}
+            {% endfor %}
+            <input type="hidden" name="vacancy" value="{{ vacancy_form.instance.id }}">
+            <button type="submit" class="btn btn-primary">Обновить шаг согласования</button>
+        </form>
+        <hr>
+    {% endfor %}
+
+    <h3>Добавить шаг согласования</h3>
+    <form action="{% url "vacancy:check-create" %}" method="post" class="form mb-5">
+        {% csrf_token %}
+        {% for fm in create_check_form %}
+            {% if "choicefield" in fm.field|slugify %}
+                <div class="mb-3">
+                    {% bootstrap_label fm.label %}
+                    {{ fm }}
+                </div>
+            {% else %}
+                {% bootstrap_field fm %}
+            {% endif %}
+        {% endfor %}
+        <input type="hidden" value="{{ vacancy_form.instance.id }}" name="vacancy">
+        <button type="submit" class="btn btn-success">Создать новый шаг</button>
+    </form>
+{% endblock %}
+
+{% block scripts %}
+    <script>
+        CKEDITOR.replace('description');
+    </script>
+{% endblock %}

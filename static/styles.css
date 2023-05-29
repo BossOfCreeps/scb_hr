@@ -1,0 +1,46 @@
+.container {
+    font-family: Montserrat bold, sans-serif;
+    font-size: 16px;
+}
+
+.navbar {
+    margin-bottom: 20px;
+    border-bottom: 1px solid #EAECEE;
+}
+
+.nb_logo img {
+    padding-bottom: 5px;
+}
+
+.nb_toggler {
+    border: none;
+}
+
+.nb_toggler img {
+    width: 32px;
+    height: 32px;
+}
+
+.main_table_tr {
+    line-height: 40px;
+}
+
+.clickable_table td {
+    cursor: pointer;
+}
+
+.vacancy_location {
+    margin-bottom: 10px;
+}
+
+.vacancy_description {
+    margin: 30px 0;
+}
+
+nav.navbar .dropdown:hover > .dropdown-menu {
+    display: block;
+}
+
+.bootstrap-select:not([class*=col-]):not([class*=form-control]):not(.input-group-btn) {
+    width: 100%;
+}

@@ -1,0 +1,41 @@
+{% extends 'base.html' %}
+
+{% load django_bootstrap5 %}
+
+{% block title %}Резюме на вакансию "{{ vacancy.position }}"{% endblock %}
+
+{% block main %}
+    {% if request.user.contacts.all|length == 0 %}
+        <p class="badge bg-danger">У вас не указаны контакты для связи!</p>
+    {% endif %}
+
+    {% if request.user.work_experiences.all|length == 0 %}
+        <p class="badge bg-danger">У вас не указан опыт работы!</p>
+    {% endif %}
+
+    {% if request.user.educations.all|length == 0 %}
+        <p class="badge bg-danger">У вас не указано образование!</p>
+    {% endif %}
+
+    <form action="{% url "candidate:candidate-request" vacancy.id %}" method="post" class="form"
+          enctype="multipart/form-data">
+        {% csrf_token %}
+        {% for fm in form %}
+            {% if "choicefield" in fm.field|slugify %}
+                <div class="mb-3">
+                    {% bootstrap_label fm.label %}
+                    {{ fm }}
+                </div>
+            {% else %}
+                {% bootstrap_field fm %}
+            {% endif %}
+        {% endfor %}
+        <button type="submit" class="btn btn-primary">Отправить резюме</button>
+    </form>
+{% endblock %}
+
+{% block scripts %}
+    <script>
+        CKEDITOR.replace('cv');
+    </script>
+{% endblock %}

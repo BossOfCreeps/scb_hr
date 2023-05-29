@@ -1,0 +1,87 @@
+{% extends 'base.html' %}
+
+{% load django_bootstrap5 %}
+
+{% block title %}
+    {% if form.instance.id %}
+        Изменение профиля пользователя
+    {% else %}
+        Регистрация пользователя
+    {% endif %}
+{% endblock %}
+
+{% block main %}
+    <form action="" method="post" class="form" enctype="multipart/form-data">
+        {% csrf_token %}
+        {% bootstrap_form form %}
+
+        {% if form.instance.id %}
+            <div class="mb-3" id="div_submit">
+                <button type="submit" class="btn btn-primary" id="reg_button">Обновить</button>
+            </div>
+        {% else %}
+            <div class="mb-3">
+                <p class="btn btn-primary" onclick="valid_email()">Проверить почту</p>
+            </div>
+
+            <div class="mb-3" style="display: none" id="div_email_code">
+                <input type="text" class="form-control" placeholder="Код из почты" required id="id_email_code">
+                <p class="btn btn-primary mt-2" onclick="valid_code()">Проверить код</p>
+            </div>
+
+            <div class="mb-3" style="display: none" id="div_submit">
+                <button type="submit" class="btn btn-primary" id="reg_button">Зарегистрироваться</button>
+            </div>
+        {% endif %}
+    </form>
+    {% csrf_token %}
+{% endblock %}
+
+{% block scripts %}
+    <script>
+        let email = ""
+
+        function valid_email() {
+            email = document.getElementById("id_email").value;
+
+            if (/^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/.test(email)) {
+                $.ajax({
+                    type: "POST",
+                    url: "{% url "account:valid_email-create" %}",
+                    data: {
+                        "csrfmiddlewaretoken": "{{ csrf_token }}",
+                        "email": email,
+                    },
+                    success: function (data) {
+                        document.getElementById("div_email_code").style.display = "block";
+                    },
+                    error: function (errMsg) {
+                        alert(errMsg);
+                    }
+                });
+            } else {
+                alert("Введите рабочую почту");
+            }
+        }
+
+        function valid_code() {
+            let value = document.getElementById("id_email_code").value;
+
+            $.ajax({
+                type: "POST",
+                url: "{% url "account:valid_email-approve" %}",
+                data: {
+                    "csrfmiddlewaretoken": "{{ csrf_token }}",
+                    "email": email,
+                    "value": value,
+                },
+                success: function (data) {
+                    document.getElementById("div_submit").style.display = "block";
+                },
+                error: function (errMsg) {
+                    alert(errMsg);
+                }
+            });
+        }
+    </script>
+{% endblock %}

@@ -1,0 +1,72 @@
+{% extends 'base.html' %}
+
+{% load django_bootstrap5 %}
+
+{% block title %}Парсинг данных с сайта Superjob.ru{% endblock %}
+
+{% block main %}
+    <form action="" method="get" class="form mb-3">
+        {% bootstrap_form form %}
+        <button type="submit" class="btn btn-primary">Найти резюме</button>
+    </form>
+
+    <p>Всего резюме: {{ total }}</p>
+
+    {% if object_list|length > 0 %}
+        <table class="table clickable_table mt-2" data-toggle="table">
+            <thead>
+            <tr>
+                <th scope="col" class="order">Должность</th>
+                <th scope="col" class="order">Зарплата</th>
+                <th scope="col" class="order d-none d-lg-table-cell">Пол и возраст</th>
+                <th scope="col" class="order d-none d-lg-table-cell">Город</th>
+                <th scope="col">Суммарный опыт</th>
+                <th scope="col" class="order d-none d-lg-table-cell">Места работы</th>
+                <th scope="col" class="order d-none d-lg-table-cell">Описание</th>
+            </tr>
+            </thead>
+
+            <tbody>
+            {% for obj in object_list %}
+                <tr onclick="open_url('{{ obj.url }}')">
+                    <td>
+                        {{ obj.position|default_if_none:"-"|linebreaks }}
+                    </td>
+                    <td>
+                        {{ obj.payment|default_if_none:"-"|linebreaks }}
+                    </td>
+                    <td class="d-none d-lg-table-cell">
+                        {{ obj.gender }}<br>{{ obj.age }}
+                    </td>
+                    <td class="d-none d-lg-table-cell">
+                        {{ obj.town|default_if_none:"-"|linebreaks }}
+                    </td>
+                    <td>
+                        {{ obj.experience_text|default_if_none:"-"|linebreaks }}
+                    </td>
+                    <td class="d-none d-lg-table-cell">
+                        {% for work in obj.work_history %}
+                            <b>{{ work.company|default_if_none:"-" }}</b>
+                            <i>{{ work.position|default_if_none:"-"|linebreaks }}</i>
+                            {{ work.description|default_if_none:"-"|linebreaks }}<br>
+                        {% endfor %}
+                    </td>
+                    <td class="d-none d-lg-table-cell">
+                        {{ obj.description|default_if_none:"-"|linebreaks }}
+                    </td>
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    {% else %}
+        <h1>Данных нет</h1>
+    {% endif %}
+{% endblock %}
+
+{% block scripts %}
+    <script>
+        function open_url(url) {
+            window.open(url);
+        }
+    </script>
+{% endblock %}

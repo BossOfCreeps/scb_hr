@@ -1,0 +1,189 @@
+{% extends 'base.html' %}
+
+{% load django_bootstrap5 %}
+{% load static %}
+
+{% block title %}Список резюме на согласование{% endblock %}
+
+{% block main %}
+    <button class="btn btn-primary" onmousedown="view_filter_form()">
+        <img src="{% static 'icons/filter.svg' %}" alt="Фильтрация"> Фильтрация
+    </button>
+
+    <form action="{% url 'inspector:resume-list' %}" method="get"
+          {% if not show_filter %}style="display: none"{% endif %}
+          class="row gx-3 gy-2" id="filter_form">
+        {% for fm in filter.form %}
+            <div class="col-sm-2">
+                {% if "choicefield" in fm.field|slugify %}
+                    <div class="mb-3">
+                        {% bootstrap_label fm.label %}
+                        {{ fm }}
+                    </div>
+                {% else %}
+                    {% bootstrap_field fm %}
+                {% endif %}
+            </div>
+        {% endfor %}
+        <div class="col-sm-2">
+            <button type="submit" class="btn btn-primary">Отфильтровать</button>
+        </div>
+    </form>
+
+    {% if resumes|length > 0 %}
+        <table class="table clickable_table" data-toggle="table">
+            <thead>
+            <tr>
+                <th scope="col" class="order d-none d-lg-table-cell">#</th>
+                <th scope="col" class="order">
+                    Должность
+                </th>
+                <th scope="col" class="order">
+                    ФИО
+                </th>
+                <th scope="col" class="order">
+                    Статус
+                </th>
+                <th scope="col" class="order d-none d-lg-table-cell">
+                    Создан
+                </th>
+                <th scope="col" class="d-none d-lg-table-cell">
+
+                </th>
+            </tr>
+            </thead>
+
+            <tbody>
+            {% for resume in resumes %}
+                <tr>
+                    <th scope="row" onclick="open_resume('{{ resume.id }}')" class="d-none d-lg-table-cell">
+                        {{ resume.id }}
+                    </th>
+                    <td onclick="open_resume('{{ resume.id }}')">
+                        {{ resume.vacancy.position }}
+                    </td>
+                    <td onclick="open_resume('{{ resume.id }}')">
+                        {{ resume.candidate.full_name }}
+                    </td>
+                    <td onclick="open_resume('{{ resume.id }}')">
+                        {{ resume.get_status_display }}
+                    </td>
+                    <td class="d-none d-lg-table-cell" onclick="open_resume('{{ resume.id }}')">
+                        {{ resume.created|date:'Y-m-d' }}
+                    </td>
+                    <td class="d-none d-lg-table-cell">
+                        <div class="btn-group" role="group">
+                            <button type="button" class="btn btn-secondary" data-bs-toggle="modal"
+                                    data-bs-target="#InterviewModal"
+                                    onclick="set_resume_id({{ resume.id }})">
+                                <img src="{% static "icons/interview.svg" %}">
+                            </button>
+                            <button type="button" class="btn btn-success" data-bs-toggle="modal"
+                                    data-bs-target="#ApproveModal"
+                                    onclick="set_resume_id({{ resume.id }})">
+                                <img src="{% static "icons/approve.svg" %}">
+                            </button>
+                            <button type="button" class="btn btn-danger" data-bs-toggle="modal"
+                                    data-bs-target="#DenyModal"
+                                    onclick="set_resume_id({{ resume.id }})">
+                                <img src="{% static "icons/deny.svg" %}">
+                            </button>
+                        </div>
+                    </td>
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    {% endif %}
+
+    <!-- Interview modal -->
+    <div class="modal fade" id="InterviewModal" tabindex="-1" aria-labelledby="InterviewModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <form action="{% url "inspector:interview-create" %}" method="post" class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="InterviewModalLabel">Назначить интервью</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    {% csrf_token %}
+                    <input type="hidden" id="interviewResumeIdInput" name="resume">
+                    {% for fm in interview_form %}
+                        {% if "choicefield" in fm.field|slugify %}
+                            <div class="mb-3">
+                                {% bootstrap_label fm.label %}
+                                {{ fm }}
+                            </div>
+                        {% else %}
+                            {% bootstrap_field fm %}
+                        {% endif %}
+                    {% endfor %}
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Отменить</button>
+                    <button type="submit" class="btn btn-success">Создать</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Approve modal -->
+    <div class="modal fade" id="ApproveModal" tabindex="-1" aria-labelledby="ApproveModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <form action="{% url "inspector:resume-approve" %}" method="post" class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="ApproveModalLabel">Согласовать резюме</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    {% csrf_token %}
+                    <input type="hidden" id="approveResumeIdInput" name="resume">
+                    <textarea class="form-control" rows="6" name="approve_text" id='htmldata'></textarea>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Отменить</button>
+                    <button type="submit" class="btn btn-success">Согласовать</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Deny modal -->
+    <div class="modal fade" id="DenyModal" tabindex="-1" aria-labelledby="DenyModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <form action="{% url "inspector:resume-deny" %}" method="post" class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="DenyModalLabel">Отказать кандидату</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    {% csrf_token %}
+                    <input type="hidden" id="denyResumeIdInput" name="resume">
+                    <textarea class="form-control" rows="6" name="deny_text" id='htmldata'></textarea>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Отменить</button>
+                    <button type="submit" class="btn btn-danger">Отказать</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+{% endblock %}
+
+{% block scripts %}
+    <script>
+        CKEDITOR.replace('description');
+        CKEDITOR.replace('approve_text');
+        CKEDITOR.replace('deny_text');
+
+        function set_resume_id(value) {
+            document.getElementById("interviewResumeIdInput").value = value;
+            document.getElementById("approveResumeIdInput").value = value;
+            document.getElementById("denyResumeIdInput").value = value;
+        }
+
+        function open_resume(resume_id) {
+            window.open("/inspector/" + resume_id, "_self");
+        }
+    </script>
+{% endblock %}

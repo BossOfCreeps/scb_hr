@@ -1,0 +1,97 @@
+{% extends 'base.html' %}
+
+{% load django_bootstrap5 %}
+{% load static %}
+
+{% block title %}Список всех резюме (архив){% endblock %}
+
+{% block main %}
+    <button class="btn btn-primary" onmousedown="view_filter_form()">
+        <img src="{% static 'icons/filter.svg' %}" alt="Фильтрация"> Фильтрация
+    </button>
+
+    <form action="{% url 'archive:archive-list' %}" method="get"
+          {% if not show_filter %}style="display: none"{% endif %}
+          class="row gx-3 gy-2" id="filter_form">
+        {% for fm in filter.form %}
+            {% if "choicefield" in fm.field|slugify %}
+                <div class="mb-3">
+                    {% bootstrap_label fm.label %}
+                    {{ fm }}
+                </div>
+            {% else %}
+                {% bootstrap_field fm %}
+            {% endif %}
+        {% endfor %}
+        <div class="col-sm-2">
+            <button type="submit" class="btn btn-primary">Отфильтровать</button>
+        </div>
+    </form>
+
+    {% if resumes|length > 0 %}
+        <table class="table clickable_table mt-2" data-toggle="table">
+            <thead>
+            <tr>
+                <th scope="col" class="order d-none d-lg-table-cell">#</th>
+                <th scope="col" class="order">
+                    Должность
+                </th>
+                <th scope="col" class="order">
+                    Организация
+                </th>
+                <th scope="col" class="order">
+                    ФИО
+                </th>
+                <th scope="col" class="order">
+                    Статус
+                </th>
+                <th scope="col" class="order d-none d-lg-table-cell">
+                    Создан
+                </th>
+            </tr>
+            </thead>
+
+            <tbody>
+            {% for resume in resumes %}
+                <tr onclick="open_resume('{{ resume.id }}')">
+                    <th scope="row" class="d-none d-lg-table-cell">
+                        {{ resume.id }}
+                    </th>
+                    <td>
+                        {{ resume.vacancy.position.name }}
+                    </td>
+                    <td>
+                        {{ resume.vacancy.position.organisation }}
+                    </td>
+                    <td>
+                        {{ resume.candidate.full_name }}
+                    </td>
+                    <td>
+                        {{ resume.get_status_display }}
+                    </td>
+                    <td class="d-none d-lg-table-cell">
+                        {{ resume.created|date:'Y-m-d' }}
+                    </td>
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+        <button class="btn btn-primary" onclick="download()">Скачать таблицу</button>
+    {% else %}
+        <h1>Данных нет</h1>
+    {% endif %}
+
+{% endblock %}
+
+{% block scripts %}
+    <script>
+        function open_resume(resume_id) {
+            window.open("/archive/" + resume_id, "_self");
+        }
+
+        function download() {
+            const urlParams = new URLSearchParams(window.location.search);
+            window.open("{% url "archive:archive-download" %}?" + urlParams);
+        }
+    </script>
+{% endblock %}

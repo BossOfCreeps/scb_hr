@@ -1,0 +1,31 @@
+{% extends 'base.html' %}
+
+{% load django_bootstrap5 %}
+
+{% block title %}Создать должность {{ object }}{% endblock %}
+
+{% block main %}
+    <form action="" method="post" class="form">
+        {% csrf_token %}
+        {% for fm in form %}
+            {% if "choicefield" in fm.field|slugify %}
+                <div class="mb-3">
+                    {% bootstrap_label fm.label %}
+                    {{ fm }}
+                </div>
+            {% else %}
+                {% bootstrap_field fm %}
+            {% endif %}
+        {% endfor %}
+
+        {% if form.instance.id %}
+            <button type="submit" class="btn btn-primary">Обновить должность</button>
+            <br>
+            <a href="{% url "position:position-delete" form.instance.id %}" class="btn btn-danger mt-4">
+                Удалить должность
+            </a>
+        {% else %}
+            <button type="submit" class="btn btn-success">Создать должность</button>
+        {% endif %}
+    </form>
+{% endblock %}

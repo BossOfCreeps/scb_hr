@@ -1,0 +1,28 @@
+{% extends 'base.html' %}
+
+{% load django_bootstrap5 %}
+
+{% block title %}Создать вакансию{% endblock %}
+
+{% block main %}
+    <form action="{% url "vacancy:vacancy-create" %}" method="post" class="form">
+        {% csrf_token %}
+        {% for fm in form %}
+            {% if "choicefield" in fm.field|slugify %}
+                <div class="mb-3">
+                    {% bootstrap_label fm.label %}
+                    {{ fm }}
+                </div>
+            {% else %}
+                {% bootstrap_field fm %}
+            {% endif %}
+        {% endfor %}
+        <button type="submit" class="btn btn-success">Создать вакансию</button>
+    </form>
+{% endblock %}
+
+{% block scripts %}
+    <script>
+        CKEDITOR.replace('description');
+    </script>
+{% endblock %}

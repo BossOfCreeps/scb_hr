@@ -1,0 +1,15 @@
+Django==4.2.1
+django-bootstrap5==23.1
+django-filter==23.2
+django-environ==0.10.0
+Pillow==9.5.0
+psycopg2-binary==2.9.6
+requests==2.31.0
+pytz==2023.3
+icalendar==5.0.5
+XlsxWriter==3.1.1
+celery==5.2.7
+redis==4.5.5
+gevent==22.10.2
+python-telegram-bot==20.3
+markdownify==0.11.6

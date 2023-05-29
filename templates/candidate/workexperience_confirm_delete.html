@@ -1,0 +1,11 @@
+{% extends 'base.html' %}
+
+{% block title %}Удаление опыта работы {{ object.position }} ({{ object.company }}){% endblock %}
+
+{% block main %}
+    <form action="" method="post">
+        {% csrf_token %}
+        <h1>Удалить опыт работы "{{ object.position }} ({{ object.company }})"?</h1>
+        <input type="submit" class="btn btn-danger" value="Удалить"/>
+    </form>
+{% endblock %}

@@ -1,0 +1,83 @@
+{% extends 'base.html' %}
+
+{% load django_bootstrap5 %}
+{% load static %}
+
+{% block title %}Список вакансий{% endblock %}
+
+{% block main %}
+    <div class="mb-3">
+        <a href="{% url "vacancy:vacancy-create" %}" class="btn btn-success">Создать</a>
+    </div>
+
+    <button class="btn btn-primary mb-1" onmousedown="view_filter_form()">
+        <img src="{% static 'icons/filter.svg' %}" alt="Фильтрация"> Фильтрация
+    </button>
+
+    <form action="" method="get"
+          {% if not show_filter %}style="display: none"{% endif %}
+          class="row gx-3 gy-2" id="filter_form">
+
+        {% for fm in filter.form %}
+            <div class="col-sm-2">
+                {% if "choicefield" in fm.field|slugify %}
+                    <div class="mb-3">
+                        {% bootstrap_label fm.label %}
+                        {{ fm }}
+                    </div>
+                {% else %}
+                    {% bootstrap_field fm %}
+                {% endif %}
+            </div>
+        {% endfor %}
+        <div class="col-sm-1">
+            <button type="submit" class="btn btn-primary">Отфильтровать</button>
+        </div>
+    </form>
+
+
+    {% if vacancies|length > 0 %}
+        <table class="table clickable_table">
+            <thead>
+            <tr>
+                <th scope="col" class="order">
+                    Должность
+                </th>
+                <th scope="col" class="order">
+                    Организация
+                </th>
+                <th scope="col" class="d-none d-lg-table-cell order">
+                    Создан
+                </th>
+                <th scope="col" class="d-none d-lg-table-cell"></th>
+            </tr>
+            </thead>
+            <tbody>
+            {% for vacancy in vacancies %}
+                <tr>
+                    <td onclick="open_vacancy('{{ vacancy.id }}')">
+                        {{ vacancy.position.name }}
+                    </td>
+                    <td onclick="open_vacancy('{{ vacancy.id }}')">
+                        {{ vacancy.position.organisation }}
+                    </td>
+                    <td class="d-none d-lg-table-cell" onclick="open_vacancy('{{ vacancy.id }}')">
+                        {{ vacancy.created|date:'d/m/Y' }}
+                    </td>
+                    <td class="d-none d-lg-table-cell">
+                        <a href="{% url "vacancy:vacancy-delete" vacancy.id %}" class="btn btn-danger">Удалить</a>
+                    </td>
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    {% endif %}
+{% endblock %}
+
+{% block scripts %}
+    <script>
+        function open_vacancy(vacancy_id) {
+            window.open("/vacancy/" + vacancy_id, "_self");
+        }
+    </script>
+{% endblock %}

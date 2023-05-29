@@ -1,0 +1,67 @@
+{% extends 'base.html' %}
+
+{% load django_bootstrap5 %}
+
+{% block title %}Вакансия "{{ vacancy.position }}"{% endblock %}
+
+{% block main %}
+
+    <h1>{{ vacancy.position.name }}</h1>
+
+    <div class="vacancy_location">
+        <span class="badge bg-primary">{{ vacancy.position.organisation }}</span>
+        <span class="badge bg-primary">{{ vacancy.office.city }}</span>
+    </div>
+
+
+    <div>
+        <div>
+            {% for specialisation in vacancy.specialisations.all %}
+                <span class="badge text-bg-secondary">{{ specialisation }}</span>
+            {% endfor %}
+        </div>
+
+        <div>
+            {% for work_year in vacancy.work_years.all %}
+                <span class="badge text-bg-danger">{{ work_year }}</span>
+            {% endfor %}
+        </div>
+
+        <div>
+            {% for employment_type in vacancy.employment_types.all %}
+                <span class="badge text-bg-success">{{ employment_type }}</span>
+            {% endfor %}
+        </div>
+    </div>
+
+    {% if request.user.is_authenticated %}
+        <div class="mt-3">
+            <a href="{% url "candidate:candidate-request" vacancy.id %}" class="btn btn-primary">Откликнуться</a>
+        </div>
+    {% endif %}
+
+    <div class="vacancy_description">
+        {{ vacancy.description|safe }}
+    </div>
+
+    <div class="mb-3">
+        {% with vacancy.office as office %}
+            <h2>Офис</h2>
+            <h3>{{ office.name }}</h3>
+            <p>
+                г.{{ office.city }}, {{ office.street }}, д.{{ office.house_number }}
+                {% if office.office_number %}({{ office.office_number }}){% endif %}
+            </p>
+            {% if office.image %}
+                <img src="{{ office.image.url }}" width="200" alt="Название">
+            {% endif %}
+            <p>{{ office.description|safe }}</p>
+        {% endwith %}
+    </div>
+
+    {% if request.user.is_authenticated %}
+        <div>
+            <a href="{% url "candidate:candidate-request" vacancy.id %}" class="btn btn-primary">Откликнуться</a>
+        </div>
+    {% endif %}
+{% endblock %}

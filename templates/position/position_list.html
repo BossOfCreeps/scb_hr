@@ -1,0 +1,67 @@
+{% extends 'base.html' %}
+
+{% load django_bootstrap5 %}
+{% load static %}
+{% load permission_label %}
+
+{% block title %}Список должностей{% endblock %}
+
+{% block main %}
+    <a href="{% url "position:position-create" %}" class="btn btn-success">Создать</a>
+
+    <table class="table clickable_table mt-2" data-toggle="table">
+        <thead>
+        <tr>
+            <th scope="col" class="order d-none d-lg-table-cell">#</th>
+            <th scope="col" class="order">
+                Должность
+            </th>
+            <th scope="col" class="order">
+                Организация
+            </th>
+            <th scope="col" class="d-none d-lg-table-cell">
+                Роли
+            </th>
+            <th scope="col" class="d-none d-lg-table-cell"></th>
+        </tr>
+        </thead>
+
+        <tbody>
+        {% for position in position_list %}
+            <tr onclick="open_position('{{ position.id }}')">
+                <th scope="row" class="d-none d-lg-table-cell">
+                    {{ position.id }}
+                </th>
+                <td>
+                    {{ position.name }}
+                </td>
+                <td>
+                    {{ position.organisation }}
+                </td>
+                <td class="d-none d-lg-table-cell">
+                    {% for permission in position.permissions.all %}
+                        <span class="badge bg-primary">{{ permission|permission_to_label }}</span>
+                    {% endfor %}
+                </td>
+                <td class="d-none d-lg-table-cell">
+                    <a href="{% url "position:position-delete" position.id %}" class="btn btn-danger">Удалить</a>
+                </td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+
+{% endblock %}
+
+{% block scripts %}
+    <script>
+        function open_position(position_id) {
+            window.open("/position/" + position_id, "_self");
+        }
+
+        function download() {
+            const urlParams = new URLSearchParams(window.location.search);
+            window.open("{% url "archive:archive-download" %}?" + urlParams);
+        }
+    </script>
+{% endblock %}

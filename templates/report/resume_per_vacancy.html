@@ -1,0 +1,75 @@
+{% extends 'base.html' %}
+
+{% load django_bootstrap5 %}
+
+{% block title %}Отчёт по количеству резюме на вакансии{% endblock %}
+
+{% block main %}
+    <div class="form mb-5">
+        {% csrf_token %}
+        {% for fm in form %}
+            {% if "choicefield" in fm.field|slugify %}
+                <div class="mb-3">
+                    {% bootstrap_label fm.label %}
+                    {{ fm }}
+                </div>
+            {% else %}
+                {% bootstrap_field fm %}
+            {% endif %}
+        {% endfor %}
+        <div class="mb-3">
+            <label class="form-label" for="id_created__lte"><b>Имя на графике</b></label>
+            <input type="text" class="form-control is-valid mb-3" placeholder="Имя на графике" id="id_chart_name">
+        </div>
+
+        <a class="btn btn-primary" onclick="get_resume_data()">Добавить данные</a>
+    </div>
+
+    <div id="chart"></div>
+{% endblock %}
+
+{% block scripts %}
+    <script>
+        let series = []
+
+        function render() {
+            const options = {
+                series: series,
+                chart: {type: 'bar'},
+                yaxis: {title: {text: 'Кол-во резюме'}},
+                xaxis: {categories: [{% for vacancy in vacancies %}'{{ vacancy }}',{% endfor %}]},
+            };
+
+            new ApexCharts(document.querySelector("#chart"), options).render();
+        }
+
+        function get_resume_data() {
+            $.ajax({
+                type: "POST",
+                url: "{% url "report:resume_per_vacancy-ajax" %}",
+                data: {
+                    "csrfmiddlewaretoken": "{{ csrf_token }}",
+                    "status": $('#id_status').val().join(" "),
+                    "full_name": document.getElementById("id_full_name").value,
+                    "created__gte": document.getElementById("id_created__gte").value,
+                    "created__lte": document.getElementById("id_created__lte").value,
+                },
+                success: function (data) {
+                    series.push({
+                        name: document.getElementById("id_chart_name").value,
+                        data: data,
+                    })
+
+                    document.getElementById("id_chart_name").value = ""
+
+                    render();
+                },
+                error: function (errMsg) {
+                    alert(errMsg);
+                }
+            });
+        }
+
+    </script>
+
+{% endblock %}
